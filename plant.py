@@ -8,7 +8,31 @@ bl_info = {
 	"author":"Mark Fitzgibbon"
 }
 
+import random
+
 import bpy
+from bpy.props import StringProperty, IntProperty
+
+class Rule:
+	'''
+	Definition of an individual rule for an L System
+	'''
+	def __init__(self, value, ruling, probablility = 1):
+		self.value = value
+		self.ruling = [(ruling, probablility )]
+		pass
+
+	def pickRuling(self, seed = None):
+		random.seed(seed)
+		num = random.random()
+
+		flag = 0.0
+		for r in self.ruling:
+			flag += r[1]
+			if flag >= num:
+				return r[0]
+		return None
+
 
 class LSystem:
 	'''
@@ -98,31 +122,43 @@ class RuleConflictError(Error):
 		self.existantRule = existantRule
 		self.message = message
 
-class GalapagosBlenderTurtle:
-	def __init__(self, rule):
-		#A = Step North
-		#B = Draw Cube
-		#Also, never do this
-		for c in rule:
-			if c == 'A':
-				bpy.ops.mesh.primitive_cube_add(location=bpy.context.scene.cursor_location)
-			if c == 'B':
-				tup = bpy.context.scene.cursor_location
-				tup[1] += 3
-				bpy.context.scene.cursor_location = tup
+def GalapagosBlenderTurtle(rule):
+	#A = Step North
+	#B = Draw Cube
+	#Also, never do this
+	for c in rule:
+		if c == 'A':
+			bpy.ops.mesh.primitive_cube_add(location=bpy.context.scene.cursor_location)
+		if c == 'B':
+			tup = bpy.context.scene.cursor_location
+			tup[1] += 3
+			bpy.context.scene.cursor_location = tup
 
 class LSysOperator(bpy.types.Operator):
 	bl_idname = "object.automata"
 	bl_label = "L System Automata"
 	bl_optons = {'REGISTER', 'UNDO'}
+
+	startingChain = StringProperty(
+		name = "Initial String",
+		default = "A")
+
+	generations = IntProperty(
+		name = "Generations",
+		min = 1,
+		default = 4)
+
+	def invoke(self, context, event):
+		return context.window_manager.invoke_props_dialog(self)
+
 	
 	def execute(self, context):
 		sys = LSystem()
 		sys.addRule('A', 'AB')
 		sys.addRule('B', 'A')
 
-		codex = sys.generate(4, 'A')
-		roshi = GalapagosBlenderTurtle(codex)
+		codex = sys.generate(self.generations, self.startingChain)
+		GalapagosBlenderTurtle(codex)
 		return {'FINISHED'}
 
 def register():
