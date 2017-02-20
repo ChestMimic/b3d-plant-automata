@@ -22,16 +22,16 @@ class Rule:
 		self.ruling = [(ruling, probablility )]
 		pass
 
-	def pickRuling(self, seed = None):
-		random.seed(seed)
-		num = random.random()
-
+	def pickRuling(self, roll=0):
 		flag = 0.0
 		for r in self.ruling:
 			flag += r[1]
-			if flag >= num:
+			if flag >= roll:
 				return r[0]
 		return None
+
+	def fitRuleWeighting():
+		pass
 
 
 class LSystem:
@@ -42,34 +42,25 @@ class LSystem:
 		'''
 		Initialize an empty L-System ruleset.
 		'''
-		self.rules = {}
+		self.rules = []
 
 	def getRule(self, value):
 		"""
 		Locate the rule accosiated with given string.
 		value -- desired key to be analyzed
 		"""
-		if value in self.rules:
-			return self.rules[value]
-		else:
-			return None
+		
+		for r in self.rules:
+			if r.value == value:
+				return r
 
-	def addRule(self, var, rule = None):
+	def addRule(self, var, rule ):
 		"""
 		Attempt to add a new variable as a constant (no rule) or variable (rule defined) 
 		var -- the variable to attempt to add
 		rule -- the rule the variable is associated with. If None, var is assumed to be a constant
 		"""
-		if rule is None:
-			#self.appendCons(var)
-			self.rules[var] = var
-		elif (var in self.rules):
-			raise  RuleConflictError(
-				var, self.rules.get(var), 
-				"Rule is already defined")
-		else:
-			#self.appendVar(var)
-			self.rules[var] = rule
+		self.rules.append(Rule(var, rule))
 
 	def perform(self, axiom):
 		"""
@@ -77,10 +68,9 @@ class LSystem:
 		Current implementation assumes each rule is for one character.
 		axiom -- String to be performed with
 		""" 
-		#trueAxi = list(axiom)
 		output = ""
-		for char in list(axiom):
-			output += self.getRule(char)
+		for char in axiom:
+			output += self.getRule(char).ruling[0][0]
 		return output
 
 	def generate(self, n, axiom):
