@@ -78,7 +78,6 @@ class LSystem:
 		res += "]"
 		return res
 
-###EXCEPTIONS###
 class Error:
 	"""
 	Base exceptions for this module
